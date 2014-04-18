@@ -1,0 +1,43 @@
+{
+  "name": "level-path-index",
+  "description": "leveldb indexes for properties of items at or anywhere below a point in a materialized path",
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/descendents.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/binocarlos/level-path-index.git"
+  },
+  "keywords": [
+    "leveldb",
+    "index",
+    "materialized",
+    "path",
+    "descendent",
+    "children",
+    "tree"
+  ],
+  "author": "Kai Davenport",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/binocarlos/level-path-index/issues"
+  },
+  "homepage": "https://github.com/binocarlos/level-path-index",
+  "dependencies": {
+    "pull-stream": "^2.22.0",
+    "level-index-update": "^0.1.0",
+    "pull-stream-to-stream": "^1.2.6",
+    "pull-level": "^1.1.10",
+    "pull-cat": "^1.1.5",
+    "pull-unique-combine": "^0.1.0",
+    "through": "^2.3.4"
+  },
+  "devDependencies": {
+    "tape": "^2.12.3",
+    "level-sublevel": "^5.2.0",
+    "level-test": "^1.6.2",
+    "async": "^0.7.0"
+  }
+}
