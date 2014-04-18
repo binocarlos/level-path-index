@@ -6,7 +6,7 @@ var pull = require('pull-stream')
 var tape     = require('tape')
 var pathindexer   = require('../')
 
-var db = sublevel(level('level-path-index--simple', {encoding: 'json'}))
+var db = sublevel(level('level-path-index--descendents', {encoding: 'json'}))
 
 var tree = pathindexer(db, 'index', function(key, obj, emit){
   emit(key, 'size', obj.size)
@@ -16,9 +16,6 @@ var tree = pathindexer(db, 'index', function(key, obj, emit){
   arr.forEach(function(t){
     emit(key, 'tag', t);
   })
-
-  // test the symlinks!
-  emit('/city/' + obj.name, 'size', obj.size)
 })
 
 tape('init', function (t) {
@@ -30,25 +27,25 @@ tape('init', function (t) {
   ], function (err, batch) {
     if(err) throw err
 
-    t.equal(batch.length, 44)
 
-    t.equal(batch[0].key, '/uk/south/west/bristol')
-    t.equal(batch[10].key, 'ÿindexÿcv~size~medium~/city~_cv~/uk/south/west/bristol')
-    t.equal(batch[11].key, '/uk/south/east/london')
-
-
-    console.log(batch.length);
-
-/*
     console.dir(batch.map(function(b){
       return b.key
     }));
-*/
+
+    console.log(batch.length);
+
+    t.equal(batch.length, 36)
+
+    t.equal(batch[0].key, '/uk/south/west/bristol')
+
+    t.equal(batch[4].key, 'ÿindexÿcv~tag~apple~/uk/south/west/~_cv~bristol')
+    
+    t.equal(batch[9].key, '/uk/south/east/london')
+
 
     t.end()
   })
 })
-
 
 tape('descendent pull stream with no query', function (t) {
 

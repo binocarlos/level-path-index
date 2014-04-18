@@ -40,9 +40,6 @@ var treeindex = pathindex(treedb, '_treeindex', function(key, value, emit){
 	(obj.colors || []).forEach(function(color){
 		emit(key, 'color', color)
 	})
-
-	// you can make funky symlinks by emitting a different path
-	emit('/my/symlink', 'color', 'purple')
 })
 ```
 
@@ -100,8 +97,6 @@ treeindex.descendents('/home/rodney/', {
 */
 ```
 
-Be sure to add the trailing '/' otherwise '/home/rodney2' would match.
-
 You can also find direct children of an entry and use multiple clauses to your query:
 
 ```js
@@ -123,11 +118,13 @@ treeindex.children('/home/rodney/catpictures/', {
 
 ## api
 
-### pathindex(db, mapper(key, value, emit))
+### pathindex(db, [indexdb], mapper(key, value, emit))
 
-Return an indexer that uses the mapper function to emit indexed values for each put.
+Pass the document database, optionally the name/sublevel for the indexes and a mapper function that will index each document as it is updated
 
-emit is a function with a (path, field, value) signature and be called multiple times.
+the mapper is run with the key and value of the update and an emit function.
+
+emit is a function with a (path, field, value) signature and be called multiple times to add an index to the document.
 
 ```js
 var index = pathindex(mydb, function(key, value, emit){

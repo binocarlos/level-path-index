@@ -38,18 +38,9 @@ function PathIndex(db, indexDb, opts) {
   if('string' === typeof indexDb)
     indexDb = db.sublevel(indexDb)
 
+  var splitterEndReplace = new RegExp(opts.splitter + '$')
+
   var treeindex = updateindex(db, indexDb, function(key, value, emit, type){
-
-    var seen = {};
-
-    function addkey(arr){
-      var key = arr.join('~')
-      if(!seen[key]){
-        seen[key] = arr
-        emit(arr, true)
-      }
-      
-    }
 
     mapper(key, value, function(path, field, fieldvalue){
 
@@ -60,16 +51,16 @@ function PathIndex(db, indexDb, opts) {
       var parentpath = parts.join(opts.splitter)
 
       // descendent tree
-      addkey(['dt', key])
+      emit(['dt', key + opts.splitter], true)
 
       // child tree
-      addkey(['ct', parentpath, '_ct', key])
+      emit(['ct', parentpath + opts.splitter, '_ct', nodename], true)
 
       // descendent tree with values
-      addkey(['dv', field, fieldvalue, key])
+      emit(['dv', field, fieldvalue, key + opts.splitter], true)
 
       // child tree with values
-      addkey(['cv', field, fieldvalue, parentpath, '_cv', key])
+      emit(['cv', field, fieldvalue, parentpath + opts.splitter, '_cv', nodename], true)
     })
   })
 
@@ -94,10 +85,12 @@ function PathIndex(db, indexDb, opts) {
       parts.push(query.value)
     }
 
-    parts.push(path);
+    path = path.replace(splitterEndReplace, '')
+    path += opts.splitter
+    parts.push(path)
 
     if(mode=='c'){
-      parts.push(tag)
+      parts.push('_' + tag)
     }
 
     var base = parts.join('~')
@@ -138,8 +131,17 @@ function PathIndex(db, indexDb, opts) {
     // map the document id from the index key
     return pull.map(function(entry){
 
-      // the actual key is always the last part of the index
-      return entry.split('~').pop()
+      if(entry.charAt(0)=='d'){
+        return entry.split('~').pop().replace(splitterEndReplace, '')
+      }
+      else{
+        var parts = entry.split('~')
+        var nodename = parts.pop()
+        parts.pop()
+        var foldername = parts.pop()
+        return foldername + nodename
+      }
+      
       
     }).pipe(
 
@@ -179,6 +181,20 @@ function PathIndex(db, indexDb, opts) {
     return pull(source, through)
   }
 
+  treeindex.childPullStream = function childStream(path, query, opts){
+    var source = searchSource('c', path, query)
+    var through = documentThrough(query)
+
+    return pull(source, through)
+  }
+
+  treeindex.childKeyPullStream = function childKeyStream(path, query){
+    var source = searchSource('c', path, query)
+    var through = idThrough(query)
+
+    return pull(source, through)
+  }
+
   treeindex.descendentStream = function descendentStream(path, query){
     return toStream(null, this.descendentPullStream(path, query))
   }
@@ -187,23 +203,12 @@ function PathIndex(db, indexDb, opts) {
     return toStream(null, this.descendentKeyPullStream(path, query))
   }
 
-
-
-
-  treeindex.childStream = function childStream(path, query, opts){
-    
-  }
-
-  treeindex.childPullStream = function childStream(path, query, opts){
-    
+  treeindex.childStream = function childStream(path, query){
+    return toStream(null, this.childPullStream(path, query))
   }
 
   treeindex.childKeyStream = function childKeyStream(path, query){
-    
-  }
-
-  treeindex.childKeyPullStream = function childKeyStream(path, query){
-    
+    return toStream(null, this.childKeyPullStream(path, query))
   }
 
   return treeindex
