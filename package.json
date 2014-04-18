@@ -1,7 +1,7 @@
 {
   "name": "level-path-index",
   "description": "leveldb indexes for properties of items at or anywhere below a point in a materialized path",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "index.js",
   "scripts": {
     "test": "tape test/*.js"
