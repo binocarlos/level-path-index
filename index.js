@@ -111,7 +111,7 @@ function PathIndex(db, indexDb, opts) {
     })
   }
 
-  function search(mode, path, query){
+  function searchSource(mode, path, query){
 
     if(Object.keys(query || {}).length>0){
 
@@ -131,44 +131,47 @@ function PathIndex(db, indexDb, opts) {
     }
   }
 
-  // a pull stream that yields the ids of documents that match all terms in our query
-  function idStream(mode, path, query){
-
+  function idThrough(query){
     // the number of hits a document must get to match to whole query (path + multiple values)
     var queryCount = Object.keys(query || {}).length + 1
 
-    return pull(
-
-      // a pull stream that is a merge of the search streams
-      search(mode, path, query),
-
-      // map the document id from the index key
-      pull.map(function(entry){
-        return entry;
-      }),
-
+    // map the document id from the index key
+    return pull.map(function(entry){
+      return entry;
+    }).pipe(
       // a document only matches if the id has hit all parts of the query
       uniquecombine(queryCount)
     )
   }
 
-  treeindex.descendentStream = function descendentStream(path, query){
-    var docpull = idStream('d', path, query);
+  function documentThrough(query){
+    return idThrough(query)
+      .pipe(pull.asyncMap(function(key, cb){
+        cb(null, key);
+      }))
+  }
 
-    //.pipe(documentMapper())
-    return toStream(null, docpull)
+  treeindex.descendentPullStream = function descendentStream(path, query){
+    var source = searchSource('d', path, query)
+    var through = documentThrough(query)
+
+    return pull(source, through)
+  }
+
+  treeindex.descendentStream = function descendentStream(path, query){
+    return toStream(null, this.descendentPullStream(path, query))
   }
 
   treeindex.childStream = function childStream(path, query, opts){
-    return toStream(null, idStream('c', path, query).pipe(documentMapper()))
+    //return toStream(null, idStream('c', path, query).pipe(documentMapper()))
   }
 
   treeindex.descendentKeyStream = function descendentKeyStream(path, query){
-    return toStream(null, idStream('d', path, query))
+    //return toStream(null, idStream('d', path, query))
   }
 
   treeindex.childKeyStream = function childKeyStream(path, query){
-    return toStream(null, idStream('c', path, query))
+    //return toStream(null, idStream('c', path, query))
   }
 
   return treeindex
