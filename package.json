@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/*.js"
+    "test": "tape test/multiplefieldsearch.js"
   },
   "repository": {
     "type": "git",
@@ -37,7 +37,6 @@
   "devDependencies": {
     "tape": "^2.12.3",
     "level-sublevel": "^5.2.0",
-    "level-test": "^1.6.2",
-    "async": "^0.7.0"
+    "level-test": "^1.6.2"
   }
 }

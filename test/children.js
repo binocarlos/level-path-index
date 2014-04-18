@@ -6,7 +6,7 @@ var pull = require('pull-stream')
 var tape     = require('tape')
 var pathindexer   = require('../')
 
-var db = sublevel(level('level-path-index--simple', {encoding: 'json'}))
+var db = sublevel(level('level-path-index--children', {encoding: 'json'}))
 
 var tree = pathindexer(db, 'index', function(key, obj, emit){
   emit(key, 'size', obj.size)

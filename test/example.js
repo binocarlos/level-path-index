@@ -1,0 +1,123 @@
+var level    = require('level-test')()
+var sublevel = require('level-sublevel')
+var through = require('through')
+var pull = require('pull-stream')
+
+var tape     = require('tape')
+var pathindexer   = require('../')
+
+var db = sublevel(level('level-path-index--example', {encoding: 'json'}))
+
+var treeindex = pathindexer(db, '_treeindex', function(key, obj, emit){
+  
+  (obj.colors || []).forEach(function(color){
+    emit(key, 'color', color)
+  })
+
+  emit(key, 'name', obj.name)
+
+})
+
+tape('init', function (t) {
+
+  treeindex.batch([{
+    type:'put',
+    key:'/home/rodney/catpictures/goofycat.jpg',
+    value:{
+      name:'goofy 1',
+      colors:['red', 'blue'],
+      description:'this cat crazy ass stoopid',
+      otherstuff:'...'
+     }
+  }, {
+    type:'put',
+    key:'/home/rodney/shoppinglist/catfood.txt',
+    value:{
+      name:'cat yum yums',
+      colors:['red', 'yellow'],
+      description:'wot I needs to feeds the feline overlord',
+      otherstuff:'...'
+    }
+  }], function(err, batch) {
+
+    console.dir(batch.map(function(b){
+      return b.key
+    }));
+
+    t.equal(batch.length, 18)
+
+    t.equal(batch[0].key, '/home/rodney/catpictures/goofycat.jpg')
+    t.equal(batch[2].key, 'ÿ_treeindexÿcv~color~red~/home/rodney/catpictures/~_cv~goofycat.jpg')
+    t.equal(batch[5].key, 'ÿ_treeindexÿdt~/home/rodney/catpictures/goofycat.jpg/')
+    
+    console.log(batch.length);
+
+    t.end();
+
+  })
+
+
+})
+
+
+tape('not match bad search', function (t) {
+
+  pull(
+    treeindex.descendentPullStream('/home/rodney', {
+      color:'red2'
+    }),
+    pull.collect(function(err, docs){
+      if(err) throw err
+
+      t.equal(docs.length, 0);
+
+      t.end()
+      
+    })
+  )
+})
+
+tape('find red things', function (t) {
+
+
+  var arr = [];
+
+  pull(
+    treeindex.descendentPullStream('/home/rodney', {
+      color:'red'
+    }),
+    pull.collect(function(err, docs){
+      if(err) throw err
+
+      t.equal(docs.length, 2);
+      t.equal(docs[0].key, '/home/rodney/catpictures/goofycat.jpg')
+      t.equal(docs[1].key, '/home/rodney/shoppinglist/catfood.txt')
+
+      t.end()
+      
+    })
+  )
+})
+
+
+tape('find direct children with 2 arguments', function (t) {
+
+  var arr = [];
+
+  pull(
+    treeindex.childPullStream('/home/rodney/catpictures', {
+      color:'red',
+      name:'goofy 1'
+    }),
+    pull.collect(function(err, docs){
+      if(err) throw err
+
+      t.equal(docs.length, 1);
+      t.equal(docs[0].key, '/home/rodney/catpictures/goofycat.jpg')
+
+      t.end()
+      
+    })
+  )
+})
+
