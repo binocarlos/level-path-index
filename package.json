@@ -29,7 +29,7 @@
   "homepage": "https://github.com/binocarlos/level-path-index",
   "dependencies": {
     "pull-stream": "^2.22.0",
-    "level-index-update": "^0.1.0",
+    "level-index-update": "^0.4.1",
     "pull-stream-to-stream": "^1.2.6",
     "pull-level": "^1.1.10",
     "pull-cat": "^1.1.5",
