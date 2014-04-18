@@ -4,7 +4,7 @@
   "version": "0.0.2",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/multiplefieldsearch.js"
+    "test": "tape test/*.js"
   },
   "repository": {
     "type": "git",
@@ -31,10 +31,10 @@
     "pull-stream-to-stream": "^1.2.6",
     "pull-level": "^1.1.10",
     "pull-cat": "^1.1.5",
-    "pull-unique-combine": "^0.1.0",
-    "through": "^2.3.4"
+    "pull-unique-combine": "^0.1.0"
   },
   "devDependencies": {
+    "through": "^2.3.4",
     "tape": "^2.12.3",
     "level-sublevel": "^5.2.0",
     "level-test": "^1.6.2"
